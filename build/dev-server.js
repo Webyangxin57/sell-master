@@ -21,7 +21,7 @@ var autoOpenBrowser = !!config.dev.autoOpenBrowser
 var proxyTable = config.dev.proxyTable
 
 var app = express()
-var appdata=require('./data.json')
+var appdata = require('./data.json')
 var seller = appdata.seller
 var goods = appdata.goods
 var ratings = appdata.ratings
