@@ -17,7 +17,7 @@
         <li v-for="item in goods" class="rightList">
           <h1 class="title">{{item.name}}</h1>
           <ul>
-            <li v-for="food in item.foods" class="detailed">
+            <li v-for="food in item.foods" class="detailed" @click="fooddetailShow(food)">   <!--//!-->
                 <div class="icon">
                   <img :src="food.icon" alt="" width="57" height="57">
                 </div>
@@ -26,26 +26,33 @@
                   <p class="desc">{{food.description}}</p>
                   <div class="extra">
                     <span>月售{{food.sellCount}}份</span>
-                    <span>好评率{{food.rating}}</span>
+                    <span>好评率{{food.rating}}%</span>
                   </div>
-                  <span class="now">￥{{food.price}}</span>
-                  <span v-show="food.oldPrice" class="old">￥{{food.oldPrice}}</span>
+                  <span class="now">￥{{food.price}}</span><span v-show="food.oldPrice" class="old">￥{{food.oldPrice}}</span>
+                </div>
+                <div class="cartcontrol-box">
+                  <cartcontrol :food="food"></cartcontrol>
                 </div>
             </li>
           </ul>
         </li>
       </ul>
     </div>
-    <shopcart :deliveryprice="seller.deliveryPrice" :minprice="seller.minPrice"></shopcart>
+    <shopcart :deliveryprice="seller.deliveryPrice" :minprice="seller.minPrice" :selectFoods="selectFoods"></shopcart>
+    <food :food="selectfood" ref="food"></food>   <!--写在li里面有未知的bug，food是数组迭代的替代，不止在数组里可用-->
   </div>
 </template>
 <script type="text/ecmascript-6">
   import shopcart from '../shopcart/shopcart.vue'
+  import cartcontrol from '../cartcontrol/cartcontrol.vue'
+  import food from '../food/food.vue'
   export default{
     props: ['seller'],
     data () {
       return {
-        goods: []
+        goods: [],
+        fooddetail: false,
+        selectfood: {}
       }
     },
     created () {
@@ -57,7 +64,28 @@
       this.shujus = ['decrease', 'discount', 'guarantee', 'invoice', 'special']
     },
     components: {
-      shopcart
+      shopcart,
+      cartcontrol,
+      food
+    },
+    computed: {
+      selectFoods() {
+        let foods = []
+        this.goods.forEach((god) => {
+          god.foods.forEach((food) => {
+            if (food.count) {
+              foods.push(food)
+            }
+          })
+        })
+        return foods
+      }
+    },
+    methods: {
+      fooddetailShow(food) {
+        this.selectfood = food
+        this.$refs.food.Show()   /* 父组件调用子组件的方法 */
+      }
     }
   }
 </script>
@@ -74,6 +102,8 @@
       flex 0 0 80px
       width 80px
       overflow auto
+      &::-webkit-scrollbar
+        display none
       .foodstype-list
         .foodlistli
           display table
@@ -110,6 +140,8 @@
     .foods-wrapper
       flex-grow 1
       overflow auto
+      &::-webkit-scrollbar
+        display none
       .rightList
         .title
           font-size 12px
@@ -123,9 +155,14 @@
           padding-bottom 18px
           display flex
           border-bottom 1px solid rgba(7,17,27,0.1)
+          position relative
           &:last-child
-            padding-bottom 0
+            margin-bottom 0
             border-bottom 0
+          .cartcontrol-box
+            position absolute
+            right 0
+            bottom 12px
           .content
             flex 1
             .content-h2
