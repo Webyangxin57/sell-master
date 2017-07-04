@@ -1,12 +1,12 @@
 <template>
   <div class="cartcontrol">
     <transition name="decrease">
-      <div class="cart-decrease icon-remove_circle_outline" v-show="food.count>0" @click.stop="decreasecount"></div>
+      <div class="cart-decrease icon-remove_circle_outline" v-show="food.count>0" @click.stop="decreasecount($event)"></div>
     </transition>
     <div class="hezi">
       <div class="cart-count" v-show="food.count>0">{{food.count}}</div>
     </div>
-    <div class="cart-add icon-add_circle" @click.stop="addcount"></div>
+    <div class="cart-add icon-add_circle" @click.stop="addcount($event)"></div>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -18,7 +18,10 @@
       }
     },
     methods: {
-      addcount () {
+      addcount (event) {
+        if (!event._constructed) {
+          return
+        }
         if (!this.food.count) {
           Vue.set(this.food, 'count', 1)
         } else {
@@ -26,7 +29,10 @@
         }
         return this.food.count
       },
-      decreasecount () {
+      decreasecount (event) {
+        if (!event._constructed) {
+          return
+        }
         if (this.food.count > 0) {
           this.food.count--
         }
@@ -45,7 +51,7 @@
       opacity: 0
     .hezi
       display inline-block
-      width 24px
+      width 20px
       vertical-align top
       .cart-count
         display inline-block
@@ -53,14 +59,14 @@
         line-height 24px
         height 30px
         color rgb(147,153,159)
-        width 24px
+        width 20px
         vertical-align top
         text-align center
-        margin-top 5px
+        margin-top 2px
     .cart-add,.cart-decrease
       display inline-block
       line-height 24px
       font-size 24px
       color rgb(0,160,220)
-      padding 6px
+      padding 4px
 </style>

@@ -52,26 +52,28 @@
           bg-image("star48_half")
         &.off
           bg-image("star48_off")
-        &.star-36
-          height 15px
-          width 15px
-          margin-right 6px
-          background-size 15px 15px
-          &.on
-            bg-image("star36_on")
-          &.half
-            bg-image("star36_half")
-          &.off
-            bg-image("star36_off")
-        &.star-24
-          height 10px
-          width 10px
-          margin-right 3px
-          background-size 10px 10px
-          &.on
-            bg-image("star24_on")
-          &.half
-            bg-image("star24_half")
-          &.off
-            bg-image("star24_off")
+    &.star-36
+      .star-item
+        height 15px
+        width 15px
+        margin-right 6px
+        background-size 15px 15px
+        &.on
+          bg-image("star36_on")
+        &.half
+          bg-image("star36_half")
+        &.off
+          bg-image("star36_off")
+    &.star-24
+      .star-item
+        height 10px
+        width 10px
+        margin-right 3px
+        background-size 10px 10px
+        &.on
+          bg-image("star24_on")
+        &.half
+          bg-image("star24_half")
+        &.off
+          bg-image("star24_off")
 </style>

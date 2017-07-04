@@ -24,7 +24,7 @@
       ratings: {
         type: Array,
         default() {
-          return []
+          return []            // 这里不给一个默认值的话使用ratings.length会报错
         }
       },
       selectType: {
@@ -49,6 +49,7 @@
     methods: {
       select(index) {
         this.count = index
+        this.$emit('listevent', index)
       },
       toggleContent() {
         this.Content = !this.Content

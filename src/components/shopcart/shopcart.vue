@@ -19,7 +19,7 @@
       <div class="list-mask" v-show="listshow" @click="hidelist"></div>
     </transition>
     <transition name="fold">
-    <div class="shopcart-list" v-show="listshow">
+    <div class="shopcart-list" v-show="listshow" ref="listContent">
       <div class="list-header">
         <h1 class="title">购物车</h1>
         <span class="empty" @click="empty">清空</span>
@@ -43,6 +43,8 @@
 </template>
 <script type="text/ecmascript-6">
   import cartcontrol from '../cartcontrol/cartcontrol.vue'
+  import BScroll from 'better-scroll'
+
   export default {
     data () {
       return {
@@ -92,9 +94,21 @@
       },
       listshow() {
         if (!this.totalCount) {
+          this.fold = true
           return false
         }
         let show = !this.fold
+        if (show) {
+          this.$nextTick(() => {
+            if (!this.scroll) {
+              this.scroll = new BScroll(this.$refs.listContent, {
+                click: true
+              })
+            } else {
+              this.scroll.refresh()
+            }
+          })
+        }
         return show
       }
     },

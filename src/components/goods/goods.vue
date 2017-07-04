@@ -1,8 +1,8 @@
 <template>
   <div class="foods">
-    <div class="menu-wrapper">
+    <div class="menu-wrapper" ref="menuWrapper">
       <ul class="foodstype-list">
-        <li v-for="item in goods" class="foodlistli">
+        <li v-for="(item, index) in goods" class="foodlistli" :class="{current: currentIndex===index}" @click="selectMenu(index,$event)">
           <span class="text">
             <span v-if="item.type> 0" :class="shujus[item.type]" class="listlispan"></span>
             <span>{{item.name}}</span>
@@ -12,12 +12,12 @@
         <!--上面的v-if也可以换成v-show="...> 0"-->
       </ul>
     </div>
-    <div class="foods-wrapper">
+    <div class="foods-wrapper" ref="foodWrapper">
       <ul>
-        <li v-for="item in goods" class="rightList">
+        <li v-for="item in goods" class="rightList food-list-hook">
           <h1 class="title">{{item.name}}</h1>
           <ul>
-            <li v-for="food in item.foods" class="detailed" @click="fooddetailShow(food)">   <!--//!-->
+            <li v-for="food in item.foods" class="detailed" @click="fooddetailShow(food, $event)">   <!--//!-->
                 <div class="icon">
                   <img :src="food.icon" alt="" width="57" height="57">
                 </div>
@@ -46,22 +46,29 @@
   import shopcart from '../shopcart/shopcart.vue'
   import cartcontrol from '../cartcontrol/cartcontrol.vue'
   import food from '../food/food.vue'
+  import BScroll from 'better-scroll'
+
   export default{
     props: ['seller'],
     data () {
       return {
         goods: [],
         fooddetail: false,
-        selectfood: {}
+        selectfood: {},
+        shujus: ['decrease', 'discount', 'guarantee', 'invoice', 'special'],
+        listHeight: [],
+        scrollY: 0
       }
     },
     created () {
       this.$http.get('/api/goods').then((response) => {
         response = response.body
         this.goods = response.data
-        console.log(this.goods)
+        this.$nextTick(() => {
+          this._initScroll()
+          this.getHeight()
+        })
       })
-      this.shujus = ['decrease', 'discount', 'guarantee', 'invoice', 'special']
     },
     components: {
       shopcart,
@@ -79,17 +86,59 @@
           })
         })
         return foods
+      },
+      currentIndex() {
+        for (let i = 0; i < this.listHeight.length; i++) {
+          let height1 = this.listHeight[i]
+          let height2 = this.listHeight[i + 1]
+          if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
+            return i
+          }
+        }
+        return 0
       }
     },
     methods: {
-      fooddetailShow(food) {
+      fooddetailShow(food, event) {
+        if (!event._constructed) {
+          return
+        }
         this.selectfood = food
         this.$refs.food.Show()   /* 父组件调用子组件的方法 */
+      },
+      _initScroll() {
+        this.menuScroll = new BScroll(this.$refs.menuWrapper, {
+          click: true
+        })
+        this.foodScroll = new BScroll(this.$refs.foodWrapper, {
+          probeType: 3,
+          click: true
+        })
+        this.foodScroll.on('scroll', (pos) => {
+          this.scrollY = Math.abs(Math.round(pos.y))
+        })
+      },
+      getHeight() {
+        let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook')
+        let height = 0
+        this.listHeight.push(height)
+        for (let i = 0; i < foodList.length; i++) {
+          let item = foodList[i]
+          height += item.clientHeight
+          this.listHeight.push(height)
+        }
+      },
+      selectMenu(index, event) {
+        if (!event._constructed) {
+          return
+        }
+        let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook')
+        let el = foodList[index]
+        this.foodScroll.scrollToElement(el, 3)
       }
     }
   }
 </script>
-
 <style lang="stylus" rel="stylesheet/stylus">
   @import "../../common/stylus/tubiao.styl"
   .foods
@@ -101,9 +150,7 @@
     .menu-wrapper
       flex 0 0 80px
       width 80px
-      overflow auto
-      &::-webkit-scrollbar
-        display none
+      overflow hidden
       .foodstype-list
         .foodlistli
           display table
@@ -111,7 +158,14 @@
           width 56px
           line-height 14px
           border-bottom 1px solid rgba(7,17,27,0.2)
-          margin 0 12px
+          padding  0 12px
+          &.current
+            position relative
+            z-index 10
+            border-bottom none
+            background #fff
+            font-weight 700
+            margin-top -1px
           .text
             display table-cell
             width 56px
@@ -139,9 +193,7 @@
       background-color #f3f5f7
     .foods-wrapper
       flex-grow 1
-      overflow auto
-      &::-webkit-scrollbar
-        display none
+      overflow hidden
       .rightList
         .title
           font-size 12px

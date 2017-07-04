@@ -12,7 +12,9 @@
         <router-link to="/seller">商家</router-link>
       </div>
     </div>
-    <router-view :seller="seller"></router-view>
+    <keep-alive>
+      <router-view :seller="seller"></router-view>
+    </keep-alive>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -28,7 +30,6 @@
         response = response.body
         if (response.errno === 0) {
           this.seller = response.data
-          console.log(this.seller)
         }
       })
     },

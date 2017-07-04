@@ -1,6 +1,6 @@
 <template>
   <transition name="foodfei">       <!--在这引入才有动画，在引入这个组件的标签上设置无效-->
-    <div class="food"  v-show="fooddetail">
+    <div class="food"  v-show="fooddetail" ref="foodss">
       <div class="food-content">
         <div class="image-header">
           <img :src="food.image" alt="">
@@ -17,37 +17,37 @@
           <div class="price">
             <span class="now">￥{{food.price}}</span><span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
           </div>
+          <div class="cartcontrol-wrapper">
+            <cartcontrol :food="food"></cartcontrol>
+          </div>
+          <div class="buy" v-show="!food.count||food.count===0" @click="addcount">加入购物车</div>
         </div>
-        <div class="cartcontrol-wrapper">
-          <cartcontrol :food="food"></cartcontrol>
+        <split v-show="food.info"></split>
+        <div class="info" v-show="food.info">
+          <h1 class="title">商品信息</h1>
+          <p class="text">{{food.info}}</p>
         </div>
-        <div class="buy" v-show="!food.count||food.count===0" @click="addcount">加入购物车</div>
-      </div>
-      <split v-show="food.info"></split>
-      <div class="info" v-show="food.info">
-        <h1 class="title">商品信息</h1>
-        <p class="text">{{food.info}}</p>
-      </div>
-      <split></split>
-      <div class="rating">
-        <h1 class="title">商品评价</h1>
-      </div>
-      <ratingselect :ratings="food.ratings" :selectType="selectType" :onlyContent="onlyContent" :desc="desc"></ratingselect>
-      <div class="rating-wrapper">
-        <ul v-show="food.ratings&&food.ratings.length">
-          <li v-for="rating in food.ratings" class="rating-item">
-            <div class="user">
-              <span class="name">{{rating.username}}</span>
-              <img class="avatar" :src="rating.avatar" alt="" width="12" height="12">
-            </div>
-            <div class="time">{{rating.rateTime}}</div>
-            <p class="text">
-              <span class="icon-thumb_up" v-show="!rating.rateType"></span>
-              <span class="icon-thumb_down" v-show="rating.rateType"></span>{{rating.text}}
-            </p>
-          </li>
-        </ul>
-        <div class="no-rating" v-show="!food.ratings||!food.ratings.length"></div>
+        <split></split>
+        <div class="rating">
+          <h1 class="title">商品评价</h1>
+        </div>
+        <ratingselect :ratings="food.ratings" :selectType="selectType" :onlyContent="onlyContent" :desc="desc" @listevent="showlistchildren"></ratingselect>
+        <div class="rating-wrapper">
+          <ul v-show="food.ratings&&food.ratings.length">
+            <li v-show="needShow(rating.rateType,rating.text)" v-for="rating in food.ratings" class="rating-item">
+              <div class="user">
+                <span class="name">{{rating.username}}</span>
+                <img class="avatar" :src="rating.avatar" alt="" width="12" height="12">
+              </div>
+              <div class="time">{{rating.rateTime}}</div>
+              <p class="text">
+                <span class="icon-thumb_up" v-show="!rating.rateType"></span>
+                <span class="icon-thumb_down" v-show="rating.rateType"></span>{{rating.text}}
+              </p>
+            </li>
+          </ul>
+          <div class="no-rating" v-show="!food.ratings||!food.ratings.length">暂无评论！</div>
+        </div>
       </div>
     </div>
   </transition>
@@ -57,6 +57,7 @@
   import Vue from 'vue'
   import split from '../split/spilt.vue'
   import ratingselect from '../ratingselect/ratingselect.vue'
+  import BScroll from 'better-scroll'
 
   const ALL = 2
 
@@ -69,8 +70,8 @@
     data () {
       return {
         fooddetail: false,
-        selectType: ALL,
-        onlyContent: true,
+        selectType: 0,
+        onlyContent: false,
         desc: {
           all: '全部',
           positive: '推荐',
@@ -81,6 +82,15 @@
     methods: {
       Show() {
         this.fooddetail = true
+        this.$nextTick(() => {
+          if (!this.scroll) {
+            this.scroll = new BScroll(this.$refs.foodss, {
+              click: true
+            })
+          } else {
+            this.scroll.refresh()
+          }
+        })
       },
       back() {
         this.fooddetail = false
@@ -89,6 +99,19 @@
         if (!this.food.count) {
           Vue.set(this.food, 'count', 1)
         }
+      },
+      needShow(type, text) {
+        if (this.onlyContent && !text) {
+          return false
+        }
+        if (this.selectType === ALL) {
+          return true
+        } else {
+          return type === this.selectType
+        }
+      },
+      showlistchildren(index) {
+        this.selectType = index
       }
     },
     components: {
@@ -106,9 +129,7 @@
     bottom 48px
     z-index 4
     width 100%
-    overflow auto
-    &::-webkit-scrollbar
-      display none
+    overflow hidden
     background #fff
     .food-content
       position relative
@@ -139,6 +160,7 @@
           color #fff
     .content
       padding 18px
+      position relative
       .title
         line-height 14px
         margin-bottom 8px
@@ -150,6 +172,23 @@
         line-height 10px
         font-size 0
         height 10px
+      .cartcontrol-wrapper
+        position absolute
+        right 12px
+        bottom 12px
+      .buy
+        position absolute
+        right 18px
+        bottom 18px
+        z-index 2
+        line-height 24px
+        height 24px
+        padding 0 12px
+        box-sizing border-box
+        font-size 10px
+        border-radius 12px
+        color #fff
+        background rgb(0,160,220)
         .sell-count,.rating
           font-size 10px
           color rgb(147,153,159)
@@ -166,23 +205,6 @@
           color rgb(147,153,159)
           line-height 24px
           text-decoration line-through
-    .cartcontrol-wrapper
-      position absolute
-      right 12px
-      bottom 12px
-    .buy
-      position absolute
-      right 18px
-      bottom 18px
-      z-index 2
-      line-height 24px
-      height 24px
-      padding 0 12px
-      box-sizing border-box
-      font-size 10px
-      border-radius 12px
-      color #fff
-      background rgb(0,160,220)
     .info
       padding 18px
       .title
@@ -238,4 +260,8 @@
             color rgb(0,160,220)
           .icon-thumb_down
             color rgb(147,153,159)
+      .no-rating
+        padding 18px 0
+        color #93999f
+        font-size 12px
 </style>
